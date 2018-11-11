@@ -2,6 +2,7 @@
 
 define("VALID_COUNTRY", "/[a-zA-Z]{2,}/", true);
 define("VALID_EMAIL", "", true);
+
 require __DIR__ . '/vendor/autoload.php';
 
 Flight::register('db', 'PDO', array('mysql:host=localhost;dbname=stock_api','root','isx'));
