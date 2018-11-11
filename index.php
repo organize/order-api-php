@@ -1,11 +1,17 @@
 <?php
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 define("VALID_COUNTRY", "/[a-zA-Z]{2,}/", true);
-define("VALID_EMAIL", "", true);
 
 require __DIR__ . '/vendor/autoload.php';
 
-Flight::register('db', 'PDO', array('mysql:host=localhost;dbname=stock_api','root','isx'));
+$DB_PDO = empty(getenv('CLEARDB_DATABASE_PDO')) ? 'mysql:host=localhost;dbname=stock_api' : getenv('CLEARDB_DATABASE_PDO');
+$DB_USERNAME = empty(getenv('CLEARDB_USERNAME')) ? 'root' : getenv('CLEARDB_USERNAME');
+$DB_PASSWORD = empty(getenv('CLEARDB_PASSWORD')) ? 'isx' : getenv('CLEARDB_PASSWORD');
+
+Flight::register('db', 'PDO', array($DB_PDO, $DB_USERNAME, $DB_PASSWORD));
 
 Flight::route('POST /', function() {
     $data = array(
@@ -18,7 +24,7 @@ Flight::route('POST /', function() {
     validate_data($data);
 
     process_order(
-        new \OrderAPI\OrderData($data['products'], strtoupper($data['country']), $data['format'], $data['to_email'], $data['email_address']));
+        new \OrderAPI\OrderData($data['products'], strtoupper($data['country']), $data['format'], json_decode($data['to_email']), $data['email_address']));
 });
 
 function process_order($order_data)
@@ -29,6 +35,9 @@ function process_order($order_data)
 
     $invoice_formatted = format_invoice($invoice, $order_data->format);
 
+    if($order_data->to_email) {
+        send_mail($invoice_formatted, $order_data->email_address, $order_data->format === "json");
+    }
     echo $invoice_formatted;
 }
 
@@ -90,6 +99,32 @@ function validate_data($data)
     if(!empty($halt_data))
     {
         Flight::halt(400, implode("<br>", $halt_data));
+    }
+}
+
+function send_mail($invoice, $recipient, $json)
+{
+    $mail = new PHPMailer(true);                              // Passing `true` enables exceptions
+    try {
+        $mail->isSMTP();                                      // Set mailer to use SMTP
+        $mail->Host = 'smtp.mail.com';  // Specify main and backup SMTP servers
+        $mail->SMTPAuth = true;                               // Enable SMTP authentication
+        $mail->Username = 'savetheplanet@null.net';                 // SMTP username
+        $mail->Password = !empty(getenv('EMAIL_PASSWORD')) ? getenv('EMAIL_PASSWORD') : 'SaveThePlanet16';                           // SMTP password
+        $mail->SMTPSecure = 'ssl';                            // Enable TLS encryption, `ssl` also accepted
+        $mail->Port = 465;                                    // TCP port to connect to
+
+        $mail->setFrom('savetheplanet@null.net', 'OrderAPI');
+        $mail->addAddress($recipient);
+
+        $mail->isHTML(!$json);
+        $mail->Subject = 'OrderAPI invoice #' . (rand(1,1000));
+        $mail->Body    = $invoice;
+        $mail->AltBody = 'Invoice cannot be displayed as your email does not support HTML.';
+
+        $mail->send();
+    } catch (Exception $e) {
+        Flight::halt(400, "could not send invoice to given email address.");
     }
 }
 

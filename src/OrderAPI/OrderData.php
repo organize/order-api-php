@@ -17,7 +17,7 @@ class OrderData
         $this->products = json_decode($products, true);
         $this->country = $country;
         $this->format = $format;
-        $this->to_email = json_decode($to_email);
+        $this->to_email = $to_email;
         $this->email_address = $email_address;
         $this->process_product_format();
     }
