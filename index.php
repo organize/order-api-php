@@ -4,8 +4,6 @@ define("VALID_COUNTRY", "/[a-zA-Z]{2,}/", true);
 define("VALID_EMAIL", "", true);
 require __DIR__ . '/vendor/autoload.php';
 
-const DEFAULT_TAX = 0.2;
-
 Flight::register('db', 'PDO', array('mysql:host=localhost;dbname=stock_api','root','isx'));
 
 Flight::route('POST /', function() {
