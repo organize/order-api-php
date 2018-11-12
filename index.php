@@ -8,7 +8,8 @@ $DB_PASSWORD = empty(getenv('CLEARDB_PASSWORD')) ? 'isx' : getenv('CLEARDB_PASSW
 
 Flight::register('db', 'PDO', array($DB_PDO, $DB_USERNAME, $DB_PASSWORD));
 
-Flight::route('POST /', function() {
+Flight::route('POST /', function()
+{
     $data = array(
         'products' => json_encode(Flight::request()->data->products, true),
         'country' => Flight::request()->data->country,
@@ -18,7 +19,8 @@ Flight::route('POST /', function() {
 
     if(validate_input($data))
     {
-        process_order(new \OrderAPI\Model\OrderData($data['products'], strtoupper($data['country']), $data['format'], json_decode($data['to_email']), $data['email_address']));
+        process_order(
+            new \OrderAPI\Model\OrderData($data['products'], strtoupper($data['country']), $data['format'], json_decode($data['to_email']), $data['email_address']));
     }
 });
 
@@ -36,7 +38,8 @@ function process_order($order_data)
 
         $invoice_formatted = $order_data->format === "json" ? json_encode($invoice) : invoice_as_html($invoice);
 
-        if ($order_data->to_email) {
+        if ($order_data->to_email)
+        {
             \OrderAPI\Mail\Mailer::send_mail($invoice_formatted, $order_data->email_address, $order_data->format === "json");
         }
         echo $invoice_formatted;
@@ -49,7 +52,8 @@ function process_order($order_data)
  * @param $invoice. the Invoice instance
  * @return string, the generated HTML from given $invoice
  */
-function invoice_as_html($invoice): string {
+function invoice_as_html($invoice): string
+{
     return Flight::view()->fetch('invoice_base.php', array(
         'body_content' => \OrderAPI\Util\DataUtil::inventory_to_table_data($invoice->inventory),
         'tax_amount' => $invoice->tax_base->tax_percentage * 100,
