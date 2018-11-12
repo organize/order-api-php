@@ -56,6 +56,25 @@
 }
 ```
 
+Dummy data:
+
+```SQL
+mysql> select * from stock;
++------------+----------------+---------------+------------------------------+------------------+
+| product_id | product_title  | product_price | product_description          | product_quantity |
++------------+----------------+---------------+------------------------------+------------------+
+|          1 | Banana         |           2.5 | A tasty snack.               |             9000 |
+|         11 | Cactus extract |            30 | Healthy, but lacks in taste. |              500 |
+|         21 | Milk           |           1.7 | Cow juice!                   |             1000 |
+|         31 | Almonds        |           2.8 | Good for you.                |              583 |
+|         41 | Pepsi Max      |           1.2 | Zero in a can.               |               30 |
+|         51 | Spice          |           8.5 | No one know what it is.      |              502 |
+|         61 | L-carnitine    |            20 | Amino acid?                  |              120 |
++------------+----------------+---------------+------------------------------+------------------+
+7 rows in set (0,06 sec)
+
+```
+
 ### Tech
 
 ##### FlightPHP
