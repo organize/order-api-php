@@ -61,6 +61,11 @@ class DataUtil
             if (empty($data['email_address']))
             {
                 array_push($halt_data, "{parameter 'email_address' cannot be empty if 'to_email' is 'true'.}");
+            } else {
+                if(filter_var($data['email_address'], FILTER_VALIDATE_EMAIL) === false)
+                {
+                    array_push($halt_data, "{suspicious email address.}");
+                }
             }
         }
         return $halt_data;
