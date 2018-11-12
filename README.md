@@ -108,3 +108,5 @@ mysql> select * from tax_base;
 ##### Heroku
 ##### ClearDB MySQL
 ##### PHP 7.x
+##### PHPMailer
+##### Composer
