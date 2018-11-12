@@ -89,7 +89,6 @@ function validate_products($order_data): bool
 function validate_input($data): bool
 {
     $halt_data = \OrderAPI\Util\DataUtil::check_input($data);
-    var_dump($halt_data);
     if(!empty($halt_data))
     {
         Flight::halt(400, '{failure: ' . implode(", ", $halt_data) . '}');

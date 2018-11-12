@@ -2,10 +2,10 @@
 
 namespace OrderAPI;
 
+define("DEFAULT_TAX", 0.2);
+
 class Taxes
 {
-
-    const DEFAULT_TAX = 0.2;
 
     public $country;
     public $tax_percentage;
