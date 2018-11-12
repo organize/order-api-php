@@ -8,7 +8,10 @@
     - param: `to_email` - boolean, if set to true then email_address is required (**required**)
     - param: `email_address` - string (**optional**)
 
-**NB!** *products* require "id" and "quantity" values for each entry. 
+**NB!** 
+- *products* require "id" and "quantity" values for each entry.
+- if (case insensitive) parameter `country` cannot be found in database `tax_base`, a default 20% tax will be applied.
+
 
 ### Example parameters
 ```json
