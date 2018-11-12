@@ -10,9 +10,13 @@
     - param: `email_address` - string (**optional**)
 
 **NB!** 
-- *products* require "id" and "quantity" values for each entry.
-- if (case insensitive) parameter `country` cannot be found in database `tax_base`, a default 20% tax will be applied.
+- `products` require `id` and `quantity` values for each entry.
+- If (case insensitive) parameter `country` cannot be found in database `tax_base`, a default 20% tax will be applied.
 
+**Potential improvements**
+- Validation of parameters is fairly primitive. While prepared statements are used, the input is not `filter`ed comprehensively.
+- Actual transactions are not in place.
+- The invoice number is randomly generated, though invoices could also be stored and indexed.
 
 ### Example parameters
 ```json
