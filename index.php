@@ -18,9 +18,7 @@ Flight::route('POST /', function() {
 
     if(validate_input($data))
     {
-        process_order(
-            new \OrderAPI\Model\OrderData($data['products'], strtoupper($data['country']), $data['format'], json_decode($data['to_email']), $data['email_address']));
-
+        process_order(new \OrderAPI\Model\OrderData($data['products'], strtoupper($data['country']), $data['format'], json_decode($data['to_email']), $data['email_address']));
     }
 });
 
