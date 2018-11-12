@@ -2,7 +2,6 @@
 
 namespace OrderAPI;
 
-
 class Invoice
 {
 
@@ -36,14 +35,19 @@ class Invoice
         return $result;
     }
 
-    function process_inventory() {
+    /**
+     * Processes inventory given in constructor to a more friendly format.
+     * Initially, generates Product-instances for every item, then replaces primitive inventory with an array of Product(s).
+     */
+    function process_inventory()
+    {
         $result = array();
         $stmt = $this->database->prepare('SELECT product_title, product_price, product_description FROM stock WHERE product_id = ?');
         foreach($this->inventory as $product_index => $product_quantity) {
             $stmt->execute([$product_index]);
             $data = $stmt->fetch();
             array_push($result,
-                new Product($product_index, $data['product_title'], $data['product_price'], $data['product_description'], $product_quantity));
+                new Model\Product($product_index, $data['product_title'], $data['product_price'], $data['product_description'], $product_quantity));
         }
         $this->inventory = $result;
     }

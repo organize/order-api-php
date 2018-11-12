@@ -1,10 +1,5 @@
 <?php
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-
-define("VALID_COUNTRY", "/[a-zA-Z]{2,}/", true);
-
 require __DIR__ . '/vendor/autoload.php';
 
 $DB_PDO = empty(getenv('CLEARDB_DATABASE_PDO')) ? 'mysql:host=localhost;dbname=stock_api' : getenv('CLEARDB_DATABASE_PDO');
@@ -21,49 +16,56 @@ Flight::route('POST /', function() {
         'to_email' => Flight::request()->data->to_email,
         'email_address' => Flight::request()->data->email_address);
 
-    validate_data($data);
+    if(validate_input($data))
+    {
+        process_order(
+            new \OrderAPI\Model\OrderData($data['products'], strtoupper($data['country']), $data['format'], json_decode($data['to_email']), $data['email_address']));
 
-    process_order(
-        new \OrderAPI\OrderData($data['products'], strtoupper($data['country']), $data['format'], json_decode($data['to_email']), $data['email_address']));
+    }
 });
 
+/**
+ * Places an order, generates an invoice and returns invoice to user
+ *
+ * @param $order_data, the (validated) raw array of input given through our POST endpoint
+ */
 function process_order($order_data)
 {
-    validate_products($order_data->products);
-    $tax_base = new \OrderAPI\Taxes($order_data->country, Flight::db());
-    $invoice = new \OrderAPI\Invoice($order_data->products, $tax_base, Flight::db());
+    if(validate_products($order_data->products))
+    {
+        $tax_base = new \OrderAPI\Taxes($order_data->country, Flight::db());
+        $invoice = new \OrderAPI\Invoice($order_data->products, $tax_base, Flight::db());
 
-    $invoice_formatted = format_invoice($invoice, $order_data->format);
+        $invoice_formatted = $order_data->format === "json" ? json_encode($invoice) : invoice_as_html($invoice);
 
-    if($order_data->to_email) {
-        send_mail($invoice_formatted, $order_data->email_address, $order_data->format === "json");
+        if ($order_data->to_email) {
+            \OrderAPI\Mail\Mailer::send_mail($invoice_formatted, $order_data->email_address, $order_data->format === "json");
+        }
+        echo $invoice_formatted;
     }
-    echo $invoice_formatted;
 }
 
-function format_invoice($invoice, $format) {
-    return $format === "json" ? json_encode($invoice) : invoice_as_html($invoice);
+/**
+ * Generates HTML from an Invoice instance
+ *
+ * @param $invoice. the Invoice instance
+ * @return string, the generated HTML from given $invoice
+ */
+function invoice_as_html($invoice): string {
+    return Flight::view()->fetch('invoice_base.php', array(
+        'body_content' => \OrderAPI\Util\DataUtil::inventory_to_table_data($invoice->inventory),
+        'tax_amount' => $invoice->tax_base->tax_percentage * 100,
+        'total_price' => number_format($invoice->total_price, 2, ',', ' '),
+        'country' => $invoice->tax_base->country));
 }
 
-function invoice_as_html($invoice) {
-    $as_html = '<html><body><h1>Invoice</h1>';
-    $as_html .= '<table style="width:100%"><tr><th>Item name</th><th>Item description</th> <th>Price per unit</th><th>Quantity</th><th>Item subtotal</th></tr>';
-    foreach($invoice->inventory as $item) {
-        $as_html .= '<tr><td>' . $item->name . '</td>';
-        $as_html .= '<td>' . $item->description . '</td>';
-        $as_html .= '<td>' . $item->price . '$</td>';
-        $as_html .= '<td>' . $item->quantity . '</td>';
-        $as_html .= '<td>' . $item->quantity * $item->price . '$</td>';
-        $as_html .= '</tr>';
-    }
-    $as_html .= '</table>';
-    $as_html .= '<p>Total price (' . $invoice->tax_base->tax_percentage * 100 .'% tax added): ' . number_format($invoice->total_price, 2, ',', ' ') . '$</p>';
-    $as_html .= '<p>Shipping items to ' . $invoice->tax_base->country . ', thank you for ordering!</p>';
-    $as_html .= '</body></html>';
-    return $as_html;
-}
-
-function validate_products($order_data)
+/**
+ * Ensures that items given in $order_data are available in stock
+ *
+ * @param $order_data, the OrderData instance.
+ * @return bool, whether or not products in order are valid.
+ */
+function validate_products($order_data): bool
 {
     $stmt = Flight::db()->prepare('SELECT * FROM stock WHERE product_id = ? HAVING min(product_quantity) > ?');
     foreach($order_data as $key => $value)
@@ -71,61 +73,28 @@ function validate_products($order_data)
         $stmt->execute([$key, $value]);
         if(!$stmt->fetch())
         {
-            Flight::halt(400, "out of stock or invalid id for item (id = " . $key . ").");
+            Flight::halt(400, "{failure: out of stock or invalid id for item (id = " . $key . ").}");
+            return false;
         }
     }
+    return true;
 }
 
-function validate_data($data)
+/**
+ * Ensures that given input is valid, halts with a stack of errors if invalid
+ *
+ * @param $data, the array of input
+ * @return bool, whether or not given input is valid
+ */
+function validate_input($data): bool
 {
-    $halt_data = array();
-    if(empty($data['products']) || !is_array(json_decode($data['products'], true)))
-    {
-        array_push($halt_data, "parameter 'products' does not look like an array.");
-    }
-    if(!preg_match(VALID_COUNTRY, $data['country'])) {
-        array_push($halt_data,  "suspicious or missing value for parameter 'country'.");
-    }
-    if($data['format'] !== "json" && $data['format'] !== "html")
-    {
-        array_push($halt_data,  "value of parameter 'format' is not equal to 'json' nor 'html'.");
-    }
-    if(boolval(json_decode($data['to_email'])) == true)
-    {
-        if(empty($data['email_address'])) {
-            array_push($halt_data, "parameter 'email_address' cannot be empty if 'to_email' is 'true'.");
-        }
-    }
+    $halt_data = \OrderAPI\Util\DataUtil::check_input($data);
+    var_dump($halt_data);
     if(!empty($halt_data))
     {
-        Flight::halt(400, implode("<br>", $halt_data));
+        Flight::halt(400, '{failure: ' . implode(", ", $halt_data) . '}');
     }
-}
-
-function send_mail($invoice, $recipient, $json)
-{
-    $mail = new PHPMailer(true);                              // Passing `true` enables exceptions
-    try {
-        $mail->isSMTP();                                      // Set mailer to use SMTP
-        $mail->Host = 'smtp.mail.com';  // Specify main and backup SMTP servers
-        $mail->SMTPAuth = true;                               // Enable SMTP authentication
-        $mail->Username = 'savetheplanet@null.net';                 // SMTP username
-        $mail->Password = !empty(getenv('EMAIL_PASSWORD')) ? getenv('EMAIL_PASSWORD') : 'SaveThePlanet16';                           // SMTP password
-        $mail->SMTPSecure = 'ssl';                            // Enable TLS encryption, `ssl` also accepted
-        $mail->Port = 465;                                    // TCP port to connect to
-
-        $mail->setFrom('savetheplanet@null.net', 'OrderAPI');
-        $mail->addAddress($recipient);
-
-        $mail->isHTML(!$json);
-        $mail->Subject = 'OrderAPI invoice #' . (rand(1,1000));
-        $mail->Body    = $invoice;
-        $mail->AltBody = 'Invoice cannot be displayed as your email does not support HTML.';
-
-        $mail->send();
-    } catch (Exception $e) {
-        Flight::halt(400, "could not send invoice to given email address.");
-    }
+    return empty($halt_data);
 }
 
 Flight::start();

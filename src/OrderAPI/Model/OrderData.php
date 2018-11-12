@@ -1,6 +1,6 @@
 <?php
 
-namespace OrderAPI;
+namespace OrderAPI\Model;
 
 class OrderData
 {

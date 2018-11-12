@@ -1,13 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: coon
- * Date: 11.11.2018
- * Time: 22:37
- */
 
 namespace OrderAPI;
-
 
 class Taxes
 {
