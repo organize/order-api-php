@@ -1,5 +1,6 @@
 # Lamia Order API
 
+`https://order-api-php.herokuapp.com/`
 ### Usage
 - One endpoint (POST /), takes JSON input.
     - param: `products` - JSON array of products (**required**)
@@ -9,7 +10,7 @@
     - param: `email_address` - string (**optional**)
 
 **NB!** 
-- `products` requires `id` and `quantity` values for each entry.
+- *products* require "id" and "quantity" values for each entry.
 - if (case insensitive) parameter `country` cannot be found in database `tax_base`, a default 20% tax will be applied.
 
 
