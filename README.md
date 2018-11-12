@@ -6,7 +6,7 @@
     - param: `products` - JSON array of products (**required**)
     - param: `country`- string (**required**)
     - param: `format` - string, either "json" or "html" (**required**)
-    - param: `to_email` - boolean, if set to true then email_address is required (**required**)
+    - param: `to_email` - boolean, defaults to false, if set to true then email_address is required (**optional**)
     - param: `email_address` - string (**optional**)
 
 **NB!** 
