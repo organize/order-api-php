@@ -39,6 +39,14 @@ class DataUtil
         if (empty($data['products']) || !is_array(json_decode($data['products'], true)))
         {
             array_push($halt_data, "{parameter 'products' does not look like an array.}");
+        } else {
+            $products_raw = json_decode($data['products'], true);
+            foreach($products_raw as $product) {
+                if(empty($product['id']) || empty($product['quantity']))
+                {
+                    array_push($halt_data, "{parameter 'products' is malformed.}");
+                }
+            }
         }
         if (!preg_match(VALID_COUNTRY, $data['country']))
         {
