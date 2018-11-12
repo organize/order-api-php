@@ -56,7 +56,7 @@
 }
 ```
 
-Dummy data:
+### Dummy data
 
 ```SQL
 mysql> select * from stock;
@@ -74,6 +74,24 @@ mysql> select * from stock;
 7 rows in set (0,06 sec)
 
 ```
+
+```SQL
+mysql> select * from tax_base;
++------------+--------------+------+
+| country_id | country_name | tax  |
++------------+--------------+------+
+|          1 | Finland      |  0.2 |
+|         11 | Poland       | 0.07 |
+|         21 | Sweden       | 0.75 |
+|         31 | Netherlands  | 0.17 |
+|         41 | Norway       | 0.25 |
+|         51 | Croatia      | 0.02 |
++------------+--------------+------+
+6 rows in set (0,06 sec)
+
+```
+
+**NB!** every index is incremented by 10 due to an unconfigured ClearDB variable `auto_increment_increment = 10`.
 
 ### Tech
 
