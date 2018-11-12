@@ -2,9 +2,9 @@
 
 require __DIR__ . '/vendor/autoload.php';
 
-$DB_PDO = empty(getenv('CLEARDB_DATABASE_PDO')) ? 'mysql:host=localhost;dbname=stock_api' : getenv('CLEARDB_DATABASE_PDO');
-$DB_USERNAME = empty(getenv('CLEARDB_USERNAME')) ? 'root' : getenv('CLEARDB_USERNAME');
-$DB_PASSWORD = empty(getenv('CLEARDB_PASSWORD')) ? 'isx' : getenv('CLEARDB_PASSWORD');
+$DB_PDO = getenv('CLEARDB_DATABASE_PDO');
+$DB_USERNAME = getenv('CLEARDB_USERNAME');
+$DB_PASSWORD = getenv('CLEARDB_PASSWORD');
 
 Flight::register('db', 'PDO', array($DB_PDO, $DB_USERNAME, $DB_PASSWORD));
 

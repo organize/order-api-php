@@ -16,7 +16,7 @@ class Mailer
             $mail->Host = 'smtp.mail.com';
             $mail->SMTPAuth = true;
             $mail->Username = 'savetheplanet@null.net';
-            $mail->Password = !empty(getenv('EMAIL_PASSWORD')) ? getenv('EMAIL_PASSWORD') : 'SaveThePlanet16';                           // SMTP password
+            $mail->Password = getenv('EMAIL_PASSWORD');
             $mail->SMTPSecure = 'ssl';
             $mail->Port = 465;
 
