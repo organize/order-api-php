@@ -17,6 +17,7 @@
 - Validation of parameters is fairly primitive. While prepared statements are used, the input is not `filter`ed comprehensively.
 - Actual transactions are not in place.
 - The invoice number is randomly generated, though invoices could also be stored and indexed.
+- The entire `tax_base` table is fairly redundant in view of the tiny amount of data stored in it. This approach was taken with extensibility in mind, as the table could function to serve item-country-specific tax values over the current country-specific tax values.
 
 ### Example parameters
 ```json
